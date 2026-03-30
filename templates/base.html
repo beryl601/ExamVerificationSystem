@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pwani University - Exam System</title>
+  <!-- Bootstrap 5 CSS loaded from the internet -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+  <style>
+    body          { background: #f0f2f8; font-family: sans-serif; }
+    .navbar       { background: #0d2c6e; }
+    .navbar-brand,
+    .nav-link     { color: #ffffff !important; font-weight: 500; }
+    .nav-link:hover { color: #a8c4f0 !important; }
+    .card         { border: none; border-radius: 14px;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .btn-primary  { background: #0d2c6e; border-color: #0d2c6e; }
+    .btn-primary:hover { background: #1a4a9e; }
+    .page-title   { font-size: 1.5rem; font-weight: 600;
+                    color: #0d2c6e; margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <!-- Navigation bar (appears on every page) -->
+  <nav class="navbar navbar-expand-lg mb-4 px-3">
+    <a class="navbar-brand fw-bold" href="/">
+        Pwani University Exam System</a>
+    <div class="navbar-nav ms-auto d-flex flex-row gap-3">
+      <a class="nav-link" href="/">Dashboard</a>
+      <a class="nav-link" href="/register">Register</a>
+      <a class="nav-link" href="/students">Students</a>
+      <a class="nav-link" href="/exams">Exams</a>
+      <a class="nav-link" href="/verify">Verify</a>
+      <a class="nav-link" href="/attendance">Attendance</a>
+    </div>
+  </nav>
+  <!-- Main content area — each page fills this block -->
+  <div class="container pb-5">
+    {% block content %}{% endblock %}
+  </div>
+  <!-- Bootstrap 5 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/
+QR Code & Face Recognition System  |  Python + Flask + SQLite  |  Windows Setup
+Pwani University  |  Exam System  |  Complete Build Guide
+dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Each page can add its own scripts here -->
+  {% block scripts %}{% endblock %}
+</body>
+</html>

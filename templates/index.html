@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="page-title">Dashboard</p>
+<!-- Three stat cards -->
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card p-4 text-center">
+      <div style="font-size:2.5rem;font-weight:700;color:#0d2c6e;">
+          {{ students }}</div>
+      <div class="text-muted mt-1">Registered Students</div>
+      <a href="/students" class="btn btn-sm btn-outline-primary mt-3">
+          View All</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-4 text-center">
+      <div style="font-size:2.5rem;font-weight:700;color:#198754;">
+          {{ exams }}</div>
+      <div class="text-muted mt-1">Scheduled Exams</div>
+      <a href="/exams" class="btn btn-sm btn-outline-success mt-3">
+          View All</a>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-4 text-center">
+      <div style="font-size:2.5rem;font-weight:700;color:#fd7e14;">
+          {{ attendance }}</div>
+      <div class="text-muted mt-1">Students Verified</div>
+      <a href="/attendance" class="btn btn-sm btn-outline-warning mt-3">
+          View Log</a>
+    </div>
+  </div>
+</div>
+<!-- Quick actions and instructions -->
+<div class="row g-4 mt-2">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h6 class="fw-bold mb-3">Quick Actions</h6>
+      <div class="d-grid gap-2">
+        <a href="/register" class="btn btn-primary">
+            Register New Student</a>
+        <a href="/verify" class="btn btn-success">
+            Verify Student at Exam</a>
+        <a href="/exams" class="btn btn-outline-primary">
+            Add Exam Unit</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h6 class="fw-bold mb-3">How to use this system</h6>
+      <ol class="text-muted small mb-0">
+        <li class="mb-2">Go to Exams and add your exam units first.</li>
+        <li class="mb-2">Go to Register and add each student with
+            a clear face photo. A QR code is auto-generated.</li>
+QR Code & Face Recognition System  |  Python + Flask + SQLite  |  Windows Setup
+Pwani University  |  Exam System  |  Complete Build Guide
+        <li class="mb-2">At the exam, go to Verify — scan or type
+            the student QR code, look at the camera, click Verify.</li>
+        <li>Check Attendance for the complete digital log.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+{% endblock %}

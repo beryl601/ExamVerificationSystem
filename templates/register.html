@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="page-title">Register Student</p>
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <!-- Show error message if face was not detected -->
+      {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+      <!-- enctype="multipart/form-data" is required for file uploads -->
+      <form method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Registration Number</label>
+          <input name="reg_number" class="form-control"
+                 placeholder="e.g. SCT221-0001/2022" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Full Name</label>
+          <input name="full_name" class="form-control"
+                 placeholder="As it appears on your university ID" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Course / Programme</label>
+          <input name="course" class="form-control"
+                 placeholder="e.g. BSc. Computer Science">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email Address</label>
+          <input name="email" type="email" class="form-control"
+                 placeholder="student@pwani.ac.ke">
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Student Photo</label>
+          <input name="photo" type="file" class="form-control"
+                 accept="image/*" required>
+          <div class="form-text text-muted">
+              Upload a clear, front-facing photo with good lighting.
+              This photo is used for face recognition during exams.
+          </div>
+        </div>
+        <button class="btn btn-primary w-100 py-2">
+            Register and Generate QR Code
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+QR Code & Face Recognition System  |  Python + Flask + SQLite  |  Windows Setup
+Pwani University  |  Exam System  |  Complete Build Guide
+{% endblock %}

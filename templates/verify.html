@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="page-title">Student Verification</p>
+<div class="row g-4">
+  <!-- Left panel: controls and result -->
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h6 class="fw-bold mb-2">Step 1 — Select the Exam</h6>
+      <select id="exam_id" class="form-select mb-4">
+        {% for exam in exams %}
+        <option value="{{ exam.id }}">
+            {{ exam.unit_code }} — {{ exam.unit_name }}
+        </option>
+        {% endfor %}
+      </select>
+      <h6 class="fw-bold mb-2">Step 2 — Enter Registration Number</h6>
+      <p class="small text-muted mb-2">
+          Scan the student QR code (it auto-fills), or type manually.
+      </p>
+      <input id="reg_input" class="form-control mb-4"
+             placeholder="e.g. SCT221-0001/2022" autofocus>
+      <h6 class="fw-bold mb-2">Step 3 — Verify</h6>
+      <p class="small text-muted mb-2">
+          Student looks at camera. Click the button.
+          The system captures their face and checks it.
+      </p>
+      <button class="btn btn-success w-100 py-2 fw-bold"
+              onclick="startVerification()">
+          Verify Student
+      </button>
+      <!-- Result appears here after verification -->
+      <div id="result" class="mt-4"></div>
+    </div>
+  </div>
+  <!-- Right panel: live webcam feed -->
+  <div class="col-md-7">
+    <div class="card p-3 text-center">
+      <h6 class="fw-bold mb-2">Live Camera Feed</h6>
+      <p class="small text-muted mb-2">
+          Make sure the student faces the camera clearly.
+      </p>
+      <!-- Live video stream -->
+      <video id="video" width="100%" autoplay
+             style="border-radius:10px; border:3px solid #0d2c6e;">
+      </video>
+      <!-- Hidden canvas used to capture a still frame -->
+QR Code & Face Recognition System  |  Python + Flask + SQLite  |  Windows Setup
+Pwani University  |  Exam System  |  Complete Build Guide
+      <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Get references to the video and canvas elements
+const video  = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+// Start the webcam when the page loads
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(function(stream) {
+    video.srcObject = stream;
+  })
+  .catch(function() {
+    document.getElementById("result").innerHTML =
+      "<div class='alert alert-danger'>" +
+      "Camera access was denied. " +
+      "Please allow camera permissions and reload the page." +
+      "</div>";
+  });
+// Capture one still frame from the webcam
+// Returns a base64-encoded JPEG image string
+function captureFrame() {
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+  return canvas.toDataURL("image/jpeg");
+}
+// Main verification function — runs when the button is clicked
+function startVerification() {
+  var reg_number = document.getElementById("reg_input").value.trim();
+  var exam_id    = document.getElementById("exam_id").value;
+  var resultDiv  = document.getElementById("result");
+  // Validate that a registration number has been entered
+  if (!reg_number) {
+    alert("Please enter or scan a registration number first.");
+    return;
+  }
+  // Show a loading message while we wait
+  resultDiv.innerHTML =
+    "<div class='alert alert-info'>" +
+    "Verifying... Please wait." +
+    "</div>";
+  // Capture the current webcam frame
+  var image = captureFrame();
+  // Send reg number + webcam image to the Flask /api/verify endpoint
+  fetch("/api/verify", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      reg_number: reg_number,
+      exam_id:    exam_id,
+      image:      image
+    })
+  })
+  .then(function(response) { return response.json(); })
+QR Code & Face Recognition System  |  Python + Flask + SQLite  |  Windows Setup
+Pwani University  |  Exam System  |  Complete Build Guide
+  .then(function(data) {
+    // Choose green (success) or red (danger) based on result
+    var colour = data.success ? "success" : "danger";
+    // Build the result HTML
+    var html = "<div class='alert alert-" + colour + "'>";
+    html += "<div style='font-size:1.15rem;font-weight:600;'>";
+    html += data.message + "</div>";
+    // Show student name and reg number if we got them back
+    if (data.student_name) {
+      html += "<div class='mt-1'>";
+      html += "Student: <strong>" + data.student_name + "</strong>";
+      html += "</div>";
+      html += "<div>Reg No: <code>" + data.reg_number + "</code></div>";
+    }
+    html += "</div>";
+    resultDiv.innerHTML = html;
+    // If verification passed, clear the input for the next student
+    if (data.success) {
+      document.getElementById("reg_input").value = "";
+    }
+  })
+  .catch(function() {
+    resultDiv.innerHTML =
+      "<div class='alert alert-danger'>" +
+      "Connection error. Make sure the server is running." +
+      "</div>";
+  });
+}
+// Allow pressing Enter in the input field to trigger verification
+document.getElementById("reg_input")
+  .addEventListener("keypress", function(e) {
+    if (e.key === "Enter") { startVerification(); }
+  });
+</script>
+{% endblock %}
