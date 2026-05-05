@@ -1,16 +1,21 @@
 import qrcode
 import os
-def generate_qr(reg_number, save_folder="static/qrcodes"):
+import json
+
+def generate_qr(reg_number, full_name="", course="", save_folder="static/qrcodes"):
     """
-    Create a QR code image for a student registration number.
-    Parameters:
-        reg_number  (str): The student reg number, e.g. SCT221-0001/2022
-        save_folder (str): Folder where the image is saved
-    Returns:
-        str: The file path of the saved QR code image
+    Create a QR code image encoding student details as JSON.
     """
-    os.makedirs(save_folder, exist_ok=True)  # Create folder if it does not exist
-    qr   = qrcode.make(reg_number)           # Create the QR code image
+    os.makedirs(save_folder, exist_ok=True)
+    
+    # Encode student details as JSON in the QR code
+    qr_data = json.dumps({
+        "reg_number": reg_number,
+        "full_name": full_name,
+        "course": course
+    })
+    
+    qr = qrcode.make(qr_data)
     path = os.path.join(save_folder, f"{reg_number}.png")
-    qr.save(path)                            # Save as PNG file
-    return path  # Return the path so we can store it in the database
+    qr.save(path)
+    return path

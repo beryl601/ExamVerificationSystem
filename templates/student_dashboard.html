@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-10">
+    <div class="card login-card mb-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+        <div>
+          <p class="text-uppercase text-secondary small mb-2">Student Dashboard</p>
+          <h1 class="page-title mb-1">Welcome, {{ student.full_name }}</h1>
+          <p class="page-subtitle mb-0">Access your portal, download your exam QR code, and review upcoming exams.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="/student-portal" class="btn btn-outline-primary">Student Portal</a>
+          <a href="/download-qr/{{ student.reg_number }}" class="btn btn-primary">Download QR</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-5">
+        <div class="card p-4">
+          <h5 class="fw-bold mb-3">Your Profile</h5>
+          <dl class="row mb-0">
+            <dt class="col-5 text-secondary">Registration Number</dt>
+            <dd class="col-7">{{ student.reg_number }}</dd>
+
+            <dt class="col-5 text-secondary">Course</dt>
+            <dd class="col-7">{{ student.course }}</dd>
+
+            <dt class="col-5 text-secondary">Email</dt>
+            <dd class="col-7">{{ student.email }}</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="col-md-7">
+        <div class="card p-4">
+          <h5 class="fw-bold mb-3">Upcoming Exams</h5>
+          {% if exams %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Unit Code</th>
+                  <th>Unit Name</th>
+                  <th>Date</th>
+                  <th>Venue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for exam in exams %}
+                <tr>
+                  <td>{{ exam.unit_code }}</td>
+                  <td>{{ exam.unit_name }}</td>
+                  <td>{{ exam.exam_date.strftime("%d %b %Y %H:%M") }}</td>
+                  <td>{{ exam.venue }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted mb-0">No upcoming exams are scheduled yet. Check back later or contact your lecturer for updates.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

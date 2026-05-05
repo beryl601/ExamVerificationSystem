@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-75">
+  <div class="col-md-7 col-lg-5">
+    <div class="card login-card">
+      <div class="text-center mb-4">
+        <div class="page-title">Student Login</div>
+        <div class="page-subtitle">Enter your registration number to access your student dashboard.</div>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" class="mx-2">
+        <div class="mb-4">
+          <label class="form-label" for="reg_number">Registration Number</label>
+          <input id="reg_number" name="reg_number" type="text" class="form-control" placeholder="e.g. PU2026/1234" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

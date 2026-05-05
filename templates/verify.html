@@ -44,8 +44,6 @@
              style="border-radius:10px; border:3px solid #0d2c6e;">
       </video>
       <!-- Hidden canvas used to capture a still frame -->
-QR Code & Face Recognition System  |  Python + Flask + SQLite  |  Windows Setup
-Pwani University  |  Exam System  |  Complete Build Guide
       <canvas id="canvas" style="display:none;"></canvas>
     </div>
   </div>
@@ -53,13 +51,18 @@ Pwani University  |  Exam System  |  Complete Build Guide
 {% endblock %}
 {% block scripts %}
 <script>
-// Get references to the video and canvas elements
 const video  = document.getElementById("video");
 const canvas = document.getElementById("canvas");
-// Start the webcam when the page loads
+
+// Track when video is ready
+let videoReady = false;
+
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(function(stream) {
     video.srcObject = stream;
+    video.onloadedmetadata = function() {
+      videoReady = true;
+    };
   })
   .catch(function() {
     document.getElementById("result").innerHTML =
@@ -68,73 +71,118 @@ navigator.mediaDevices.getUserMedia({ video: true })
       "Please allow camera permissions and reload the page." +
       "</div>";
   });
-// Capture one still frame from the webcam
-// Returns a base64-encoded JPEG image string
+
 function captureFrame() {
-  canvas.width  = video.videoWidth;
-  canvas.height = video.videoHeight;
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
   canvas.getContext("2d").drawImage(video, 0, 0);
-  return canvas.toDataURL("image/jpeg");
+  return canvas.toDataURL("image/jpeg", 0.9);
 }
-// Main verification function — runs when the button is clicked
+
+// NEW: Parse QR code input — handles both plain reg number and JSON from new QR codes
+function parseQRInput(raw) {
+  var trimmed = raw.trim();
+  try {
+    var parsed = JSON.parse(trimmed);
+    // It's a JSON QR code — fill in extra fields if elements exist
+    if (parsed.reg_number) {
+      if (document.getElementById("student_name_display")) {
+        document.getElementById("student_name_display").textContent = parsed.full_name || "";
+      }
+      if (document.getElementById("course_display")) {
+        document.getElementById("course_display").textContent = parsed.course || "";
+      }
+      return parsed.reg_number;
+    }
+  } catch(e) {
+    // Not JSON — it's a plain reg number (old QR codes still work)
+  }
+  return trimmed;
+}
+
 function startVerification() {
-  var reg_number = document.getElementById("reg_input").value.trim();
+  var rawInput   = document.getElementById("reg_input").value;
+  var reg_number = parseQRInput(rawInput);
   var exam_id    = document.getElementById("exam_id").value;
   var resultDiv  = document.getElementById("result");
-  // Validate that a registration number has been entered
+
   if (!reg_number) {
     alert("Please enter or scan a registration number first.");
     return;
   }
-  // Show a loading message while we wait
-  resultDiv.innerHTML =
-    "<div class='alert alert-info'>" +
-    "Verifying... Please wait." +
-    "</div>";
-  // Capture the current webcam frame
-  var image = captureFrame();
-  // Send reg number + webcam image to the Flask /api/verify endpoint
-  fetch("/api/verify", {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      reg_number: reg_number,
-      exam_id:    exam_id,
-      image:      image
-    })
-  })
-  .then(function(response) { return response.json(); })
-QR Code & Face Recognition System  |  Python + Flask + SQLite  |  Windows Setup
-Pwani University  |  Exam System  |  Complete Build Guide
-  .then(function(data) {
-    // Choose green (success) or red (danger) based on result
-    var colour = data.success ? "success" : "danger";
-    // Build the result HTML
-    var html = "<div class='alert alert-" + colour + "'>";
-    html += "<div style='font-size:1.15rem;font-weight:600;'>";
-    html += data.message + "</div>";
-    // Show student name and reg number if we got them back
-    if (data.student_name) {
-      html += "<div class='mt-1'>";
-      html += "Student: <strong>" + data.student_name + "</strong>";
-      html += "</div>";
-      html += "<div>Reg No: <code>" + data.reg_number + "</code></div>";
-    }
-    html += "</div>";
-    resultDiv.innerHTML = html;
-    // If verification passed, clear the input for the next student
-    if (data.success) {
-      document.getElementById("reg_input").value = "";
-    }
-  })
-  .catch(function() {
+
+  // Wait for video to be ready before capturing
+  if (!videoReady) {
     resultDiv.innerHTML =
-      "<div class='alert alert-danger'>" +
-      "Connection error. Make sure the server is running." +
+      "<div class='alert alert-warning'>" +
+      "Camera is still initialising. Please wait 2 seconds and try again." +
       "</div>";
-  });
+    return;
+  }
+
+  resultDiv.innerHTML =
+    "<div class='alert alert-info'>Verifying... Please wait.</div>";
+
+  // Small delay ensures the current video frame is fully rendered
+  setTimeout(function() {
+    var image = captureFrame();
+
+    // Safety check — if canvas is blank (all black) warn the user
+    var ctx = canvas.getContext("2d");
+    var pixel = ctx.getImageData(0, 0, 1, 1).data;
+    if (pixel[0] === 0 && pixel[1] === 0 && pixel[2] === 0) {
+      resultDiv.innerHTML =
+        "<div class='alert alert-warning'>" +
+        "Camera frame appears blank. Please wait for the camera to fully load, then try again." +
+        "</div>";
+      return;
+    }
+
+    fetch("/api/verify", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reg_number: reg_number,
+        exam_id:    exam_id,
+        image:      image
+      })
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      var colour = data.success ? "success" : "danger";
+      var html = "<div class='alert alert-" + colour + "'>";
+      html += "<div style='font-size:1.15rem;font-weight:600;'>";
+      html += data.message + "</div>";
+      if (data.student_name) {
+        html += "<div class='mt-1'>Student: <strong>" + data.student_name + "</strong></div>";
+        html += "<div>Reg No: <code>" + data.reg_number + "</code></div>";
+        // Show photo if returned
+        if (data.photo_url) {
+          html += "<div class='mt-2'><img src='" + data.photo_url + "' " +
+                  "style='width:80px;height:80px;object-fit:cover;border-radius:8px;" +
+                  "border:2px solid white;'></div>";
+        }
+        // Show exam info if returned
+        if (data.exam_name) {
+          html += "<div class='mt-1 small'>Exam: <strong>" + data.exam_name + "</strong></div>";
+        }
+      }
+      html += "</div>";
+      resultDiv.innerHTML = html;
+
+      if (data.success) {
+        document.getElementById("reg_input").value = "";
+      }
+    })
+    .catch(function() {
+      resultDiv.innerHTML =
+        "<div class='alert alert-danger'>" +
+        "Connection error. Make sure the server is running." +
+        "</div>";
+    });
+  }, 150); // 150ms delay — gives the video frame time to render
 }
-// Allow pressing Enter in the input field to trigger verification
+
 document.getElementById("reg_input")
   .addEventListener("keypress", function(e) {
     if (e.key === "Enter") { startVerification(); }
