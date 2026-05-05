@@ -3,14 +3,18 @@ from functools import wraps
 from models import db, Student, Exam, AttendanceRecord
 from qr_utils import generate_qr
 from face_utils import encode_face, verify_face
+from dotenv import load_dotenv
 import os, json, cv2, base64, numpy as np
 from datetime import datetime
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "pwani_exam_secret_2026"
 
 # Database configuration
-# Use DATABASE_URL when available (Railway/Postgres), otherwise fall back to local SQLite.
+# Use DATABASE_URL from environment (set in .env or Railway dashboard)
 database_url = os.environ.get("DATABASE_URL", "sqlite:///exam_system.db")
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
