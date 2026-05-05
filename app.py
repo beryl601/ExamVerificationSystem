@@ -9,10 +9,14 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "pwani_exam_secret_2026"
 
-# Database configuration — SQLite file stored in the project folder
-app.config["SQLALCHEMY_DATABASE_URI"]     = "sqlite:///exam_system.db"
+# Database configuration
+# Use DATABASE_URL when available (Railway/Postgres), otherwise fall back to local SQLite.
+database_url = os.environ.get("DATABASE_URL", "sqlite:///exam_system.db")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["UPLOAD_FOLDER"]              = "static/uploads"
+app.config["UPLOAD_FOLDER"] = "static/uploads"
 db.init_app(app)
 
 # Create all database tables when the app starts (only runs if tables do not exist)
