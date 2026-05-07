@@ -4,6 +4,7 @@ from models import db, Student, Exam, AttendanceRecord
 from qr_utils import generate_qr
 from face_utils import encode_face, verify_face
 from dotenv import load_dotenv
+from flask_migrate import Migrate
 import os, json, cv2, base64, numpy as np
 from datetime import datetime
 
@@ -22,10 +23,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 db.init_app(app)
-
-# Create all database tables when the app starts (only runs if tables do not exist)
-with app.app_context():
-    db.create_all()
+migrate = Migrate(app, db)
 
 
 def admin_required(f):
@@ -412,5 +410,8 @@ def download_qr(reg_number):
 
 # ── Start the server ──────────────────────────────────────────────────
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
