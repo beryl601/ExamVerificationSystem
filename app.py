@@ -5,6 +5,7 @@ from qr_utils import generate_qr
 from face_utils import encode_face, verify_face
 from dotenv import load_dotenv
 from flask_migrate import Migrate
+from sqlalchemy.exc import SQLAlchemyError
 import os, json, cv2, base64, numpy as np
 from datetime import datetime
 
@@ -23,8 +24,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
-    "pool_recycle": 1800,
-    "pool_timeout": 10,
+    "pool_recycle": 300,
+    "pool_timeout": 30,
+    "pool_size": 5,
+    "max_overflow": 2,
 }
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 db.init_app(app)
@@ -135,13 +138,23 @@ def admin_logout():
 @admin_required
 def dashboard():
     """Show the main dashboard with summary counts."""
-    students   = Student.query.count()
-    exams      = Exam.query.count()
-    attendance = AttendanceRecord.query.filter_by(status="present").count()
-    return render_template("index.html",
-                           students=students,
-                           exams=exams,
-                           attendance=attendance)
+    try:
+        students   = Student.query.count()
+        exams      = Exam.query.count()
+        attendance = AttendanceRecord.query.filter_by(status="present").count()
+        return render_template("index.html",
+                               students=students,
+                               exams=exams,
+                               attendance=attendance)
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        app.logger.error("Database error on dashboard: %s", e)
+        return render_template(
+            "index.html",
+            students=0,
+            exams=0,
+            attendance=0,
+            error="Database temporarily unavailable. Please try again.")
 
 
 # ── ROUTE 3: Register student ( /register ) ───────────────────────────
