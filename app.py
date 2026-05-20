@@ -21,6 +21,11 @@ if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 1800,
+    "pool_timeout": 10,
+}
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 db.init_app(app)
 migrate = Migrate(app, db)
