@@ -17,9 +17,14 @@ app.secret_key = "pwani_exam_secret_2026"
 
 # Database configuration
 # Use DATABASE_URL from environment (set in .env or Railway dashboard)
-database_url = os.environ.get("DATABASE_URL", "sqlite:///exam_system.db")
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+# Set USE_LOCAL_DB=1 to force a local SQLite demo regardless of DATABASE_URL.
+use_local_db = os.environ.get("USE_LOCAL_DB") == "1"
+if use_local_db:
+    database_url = "sqlite:///exam_system.db"
+else:
+    database_url = os.environ.get("DATABASE_URL", "sqlite:///exam_system.db")
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
