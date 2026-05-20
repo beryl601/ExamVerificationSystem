@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card p-4">
+        <h5 class="fw-bold mb-4">Edit Exam</h5>
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Unit Code</label>
+            <input name="unit_code" class="form-control" 
+                   value="{{ exam.unit_code }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Unit Name</label>
+            <input name="unit_name" class="form-control" 
+                   value="{{ exam.unit_name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Exam Date and Time</label>
+            <input name="exam_date" type="datetime-local" class="form-control" 
+                   value="{{ exam.exam_date.strftime('%Y-%m-%dT%H:%M') }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Venue</label>
+            <input name="venue" class="form-control" 
+                   value="{{ exam.venue }}" placeholder="e.g. Block A, Room 101">
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('exams') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update Exam</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

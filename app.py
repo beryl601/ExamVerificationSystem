@@ -62,7 +62,11 @@ def invigilator_login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        if username == "invigilator" and password == "inv123":
+        # Check against default password or session-stored reset password
+        default_password = "inv123"
+        reset_password = session.get("invigilator_password")
+        
+        if username == "invigilator" and (password == default_password or (reset_password and password == reset_password)):
             session["invigilator_logged_in"] = True
             session["invigilator_name"] = "Invigilator"
             return redirect(url_for("invigilator_dashboard"))
@@ -72,18 +76,17 @@ def invigilator_login():
     return render_template("invigilator_login.html", error=error)
 
 
-@app.route("/invigilator/dashboard")
-@invigilator_required
-def invigilator_dashboard():
-    records = AttendanceRecord.query.count()
-    return render_template("invigilator_dashboard.html", attendance=records)
-
-
 @app.route("/invigilator/logout")
 def invigilator_logout():
     session.clear()
     return redirect(url_for("invigilator_login"))
 
+
+@app.route("/invigilator/dashboard")
+@invigilator_required
+def invigilator_dashboard():
+    records = AttendanceRecord.query.count()
+    return render_template("invigilator_dashboard.html", attendance=records)
 
 
 # ── ROUTE 1: Landing page ( / ) ───────────────────────────────────────
@@ -102,7 +105,11 @@ def admin_login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        if username == "admin" and password == "admin123":
+        # Check against default password or session-stored reset password
+        default_password = "admin123"
+        reset_password = session.get("admin_password")
+        
+        if username == "admin" and (password == default_password or (reset_password and password == reset_password)):
             session["admin_logged_in"] = True
             session["admin_name"] = "Administrator"
             return redirect(url_for("dashboard"))   # ← goes to dashboard, not index
@@ -304,6 +311,38 @@ def exams():
 
     all_exams = Exam.query.order_by(Exam.exam_date).all()
     return render_template("exams.html", exams=all_exams)
+
+
+# ── ROUTE 8a: Edit exam ( /exam/<exam_id>/edit ) ──────────────────────
+@app.route("/exam/<int:exam_id>/edit", methods=["GET", "POST"])
+@admin_required
+def edit_exam(exam_id):
+    """Show the edit form (GET) or update the exam (POST)."""
+    exam = Exam.query.get_or_404(exam_id)
+    
+    if request.method == "POST":
+        exam.unit_code = request.form["unit_code"]
+        exam.unit_name = request.form["unit_name"]
+        exam.exam_date = datetime.strptime(
+                            request.form["exam_date"], "%Y-%m-%dT%H:%M")
+        exam.venue = request.form["venue"]
+        db.session.commit()
+        flash("Exam updated successfully.", "success")
+        return redirect(url_for("exams"))
+    
+    return render_template("edit_exam.html", exam=exam)
+
+
+# ── ROUTE 8b: Delete exam ( /exam/<exam_id>/delete ) ────────────────────
+@app.route("/exam/<int:exam_id>/delete", methods=["GET", "POST"])
+@admin_required
+def delete_exam(exam_id):
+    """Delete an exam."""
+    exam = Exam.query.get_or_404(exam_id)
+    db.session.delete(exam)
+    db.session.commit()
+    flash("Exam deleted successfully.", "success")
+    return redirect(url_for("exams"))
 
 
 # ── ROUTE 9: Attendance report ( /attendance ) ────────────────────────
